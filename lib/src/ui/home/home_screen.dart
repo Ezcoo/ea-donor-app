@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/money.dart';
+import '../../data/services/sfx_player.dart';
 import '../../state/donation_state.dart';
 import '../../state/settings_state.dart';
 import '../settings/settings_screen.dart';
@@ -55,12 +56,15 @@ class HomeScreen extends StatelessWidget {
                 const _SummaryCard(),
                 const Expanded(child: Center(child: _BoostButton())),
                 FilledButton.icon(
-                  onPressed: () => showModalBottomSheet<void>(
-                    context: context,
-                    isScrollControlled: true,
-                    showDragHandle: true,
-                    builder: (_) => const CharityPickerSheet(),
-                  ),
+                  onPressed: () {
+                    context.read<SfxPlayer>().donate();
+                    showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      showDragHandle: true,
+                      builder: (_) => const CharityPickerSheet(),
+                    );
+                  },
                   icon: const Icon(Icons.volunteer_activism),
                   label: const Padding(
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -122,7 +126,10 @@ class _SummaryCard extends StatelessWidget {
               child: TextButton.icon(
                 onPressed: donation.boostedDollars == 0
                     ? null
-                    : () => context.read<DonationState>().reset(),
+                    : () {
+                        context.read<SfxPlayer>().reset();
+                        context.read<DonationState>().reset();
+                      },
                 icon: const Icon(Icons.replay, size: 16),
                 label: const Text('Reset boosts'),
               ),
@@ -202,6 +209,7 @@ class _BoostButtonState extends State<_BoostButton>
   void _boost() {
     final donation = context.read<DonationState>();
     final amount = donation.nextBoost; // capture before boost() advances it
+    context.read<SfxPlayer>().boost(donation.rung); // pitch follows the rung
     donation.boost();
     _press.forward(from: 0);
     setState(() => _bursts.add((id: _nextBurstId++, amount: amount)));

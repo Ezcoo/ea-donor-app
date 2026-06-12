@@ -15,6 +15,11 @@ up a donation pledge and completing it through [every.org](https://www.every.org
   weekly / monthly / quarterly / half a year) reminding you to finish a
   pledged donation. Intervals are plain `Duration`s scheduled via
   `periodicallyShowWithDuration`, so any cadence is possible.
+- **Sound effects** — boost taps play a blip that climbs a pentatonic
+  scale with the ladder rung; donate and reset have their own sounds.
+  The placeholder WAVs in `assets/sfx/` are synthesized; replace the
+  files (same names) to reskin the sounds. Playback goes through
+  `SfxPlayer`, which silently no-ops if no audio backend is available.
 
 ## Running
 

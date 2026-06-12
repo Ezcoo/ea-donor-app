@@ -7,6 +7,7 @@ import 'package:donor_app/src/app.dart';
 import 'package:donor_app/src/data/services/every_org_api.dart';
 import 'package:donor_app/src/data/services/notification_scheduler.dart';
 import 'package:donor_app/src/data/services/preferences_store.dart';
+import 'package:donor_app/src/data/services/sfx_player.dart';
 import 'package:donor_app/src/state/donation_state.dart';
 import 'package:donor_app/src/state/settings_state.dart';
 
@@ -19,6 +20,9 @@ Future<Widget> buildTestApp() async {
   return MultiProvider(
     providers: [
       Provider(create: (_) => EveryOrgApi()),
+      // init() is deliberately not called: the play methods no-op when no
+      // pools were loaded, so tests run silently without the plugin.
+      Provider(create: (_) => SfxPlayer()),
       ChangeNotifierProvider(create: (_) => DonationState(store)),
       ChangeNotifierProvider(
         create: (_) => SettingsState(store, NotificationScheduler()),

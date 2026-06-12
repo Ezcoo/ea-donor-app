@@ -25,6 +25,10 @@ class DonationState extends ChangeNotifier {
   /// What the boost button will add next: $1, $3, $5, $10, …
   int get nextBoost => DonationLadder.amountAt(_ladderIndex);
 
+  /// Current rung on the ladder (0-based) — used by the UI to pitch the
+  /// boost sound effect to how high the user has climbed.
+  int get rung => _ladderIndex;
+
   /// Adds [nextBoost] to the pledge and climbs one rung. At the top of
   /// the ladder further taps keep adding the $10,000 maximum.
   void boost() {
