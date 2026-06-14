@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:donor_app/src/app.dart';
+import 'package:donor_app/src/core/donation_ladder.dart';
 import 'package:donor_app/src/data/services/every_org_api.dart';
 import 'package:donor_app/src/data/services/notification_scheduler.dart';
 import 'package:donor_app/src/data/services/preferences_store.dart';
@@ -67,6 +68,39 @@ void main() {
     await tester.tap(find.text('Reset boosts'));
     await tester.pumpAndSettle();
 
+    // Reset now asks for confirmation; nothing changes until the user
+    // commits in the dialog.
+    expect(find.text(r'+$3'), findsOneWidget); // still on the second rung
+    await tester.tap(find.text('Reset'));
+    await tester.pumpAndSettle();
+
     expect(find.text(r'+$1'), findsOneWidget);
+  });
+
+  test('removeLastBoost peels off repeated ceiling taps one for one', () async {
+    SharedPreferences.setMockInitialValues({});
+    final donation = DonationState(await PreferencesStore.create());
+
+    // Climb to the top of the ladder, then keep tapping the ceiling.
+    while (donation.rung < DonationLadder.maxIndex) {
+      donation.boost();
+    }
+    expect(donation.nextBoost, DonationLadder.steps.last); // $10,000
+    final atCeiling = donation.boostedDollars;
+    const extraTaps = 3;
+    for (var i = 0; i < extraTaps; i++) {
+      donation.boost();
+    }
+    expect(donation.boostedDollars,
+        atCeiling + extraTaps * DonationLadder.steps.last);
+
+    // Each undo must remove exactly one $10,000 tap, not walk back down the
+    // ladder — this is what the history tracking buys us.
+    for (var remaining = extraTaps; remaining > 0; remaining--) {
+      donation.removeLastBoost();
+      expect(donation.boostedDollars,
+          atCeiling + (remaining - 1) * DonationLadder.steps.last);
+    }
+    expect(donation.boostedDollars, atCeiling);
   });
 }

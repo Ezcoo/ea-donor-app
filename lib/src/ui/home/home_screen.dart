@@ -85,6 +85,39 @@ class HomeScreen extends StatelessWidget {
 class _SummaryCard extends StatelessWidget {
   const _SummaryCard();
 
+  /// Resetting wipes every boost the user has stacked up, so confirm first.
+  Future<void> _confirmReset(BuildContext context) async {
+    // Capture before the await so we don't touch a stale context after it.
+    final donation = context.read<DonationState>();
+    final sfx = context.read<SfxPlayer>();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Reset boosts?'),
+        content: const Text(
+          'This clears every boost you have added. Your baseline is '
+          'unaffected.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed ?? false) {
+      sfx.reset();
+      donation.reset();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final baseline = context.watch<SettingsState>().baselineDollars;
@@ -121,18 +154,30 @@ class _SummaryCard extends StatelessWidget {
                 ),
               ],
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: donation.boostedDollars == 0
-                    ? null
-                    : () {
-                        context.read<SfxPlayer>().reset();
-                        context.read<DonationState>().reset();
-                      },
-                icon: const Icon(Icons.replay, size: 16),
-                label: const Text('Reset boosts'),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TextButton.icon(
+                  onPressed: donation.boostedDollars == 0
+                      ? null
+                      : () => _confirmReset(context),
+                  icon: const Icon(Icons.replay, size: 16),
+                  label: const Text('Reset boosts'),
+                ),
+                TextButton.icon(
+                  onPressed: donation.boostedDollars == 0
+                      ? null
+                      : () {
+                          final state = context.read<DonationState>();
+                          state.removeLastBoost();
+                          // Blip pitched to the rung we stepped back to, so
+                          // undoing descends the scale that boosting climbed.
+                          context.read<SfxPlayer>().boost(state.rung);
+                        },
+                  icon: const Icon(Icons.undo, size: 16),
+                  label: const Text('Remove last'),
+                ),
+              ],
             ),
           ],
         ),
