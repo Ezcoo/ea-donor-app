@@ -12,7 +12,7 @@ up a donation pledge and completing it through [every.org](https://www.every.org
 - **Donate now** — searches every.org's charity API and opens the chosen
   charity's donation page.
 - **Nudge reminders** — a repeating notification (off / every minute /
-  weekly / monthly / quarterly / half a year) reminding you to finish a
+  weekly / monthly / quarterly / biannually) reminding you to finish a
   pledged donation. Intervals are plain `Duration`s scheduled via
   `periodicallyShowWithDuration`, so any cadence is possible.
 - **Sound effects** — boost taps play a blip that climbs a pentatonic

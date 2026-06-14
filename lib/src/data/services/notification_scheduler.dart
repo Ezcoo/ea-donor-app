@@ -12,11 +12,11 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 /// without waiting a week.
 enum NudgeInterval {
   off(null, 'Off'),
-  everyMinute(Duration(minutes: 1), 'Every minute'),
+  everyMinute(Duration(minutes: 1), 'Every minute (for testing)'),
   weekly(Duration(days: 7), 'Weekly'),
   monthly(Duration(days: 30), 'Monthly'),
   quarterly(Duration(days: 91), 'Quarterly'),
-  halfYear(Duration(days: 182), 'Half a year');
+  halfYear(Duration(days: 182), 'Biannually');
 
   const NudgeInterval(this.period, this.label);
 
