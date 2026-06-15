@@ -62,26 +62,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(
               'Tune your pledge rhythm.',
               style: theme.textTheme.headlineSmall?.copyWith(
+                fontSize: 26,
                 color: const Color(0xFF06343A),
                 fontWeight: FontWeight.w900,
                 height: 1.1,
               ),
             ),
-            const SizedBox(height: 6),
-            Text(
-              'Small defaults make generosity easier when the moment comes.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 16),
             _SettingsSection(
               icon: Icons.savings_outlined,
               title: 'Baseline donation',
-              subtitle: 'The amount you always pledge, before any boosts.',
+              subtitle: 'Your default pledge before boosts.',
               child: TextField(
                 controller: _baselineController,
                 keyboardType: TextInputType.number,
+                style: const TextStyle(fontSize: 18),
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: const InputDecoration(
                   prefixText: r'$ ',
@@ -94,9 +89,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             _SettingsSection(
               icon: Icons.notifications_active_outlined,
               title: 'Nudge reminders',
-              subtitle:
-                  'How often to remind you to finish a pledged '
-                  'donation. Works on Android, iOS and macOS.',
+              subtitle: 'How often to remind you to finish a pledge.',
               child: RadioGroup<NudgeInterval>(
                 groupValue: settings.nudgeInterval,
                 onChanged: (value) {
@@ -179,6 +172,7 @@ class _SettingsSection extends StatelessWidget {
                     child: Text(
                       title,
                       style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 18,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -189,6 +183,7 @@ class _SettingsSection extends StatelessWidget {
               Text(
                 subtitle,
                 style: theme.textTheme.bodySmall!.copyWith(
+                  fontSize: 15,
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -213,7 +208,7 @@ class _NudgeOption extends StatelessWidget {
       value: interval,
       title: Text(
         interval.label,
-        style: const TextStyle(fontWeight: FontWeight.w700),
+        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 17),
       ),
       contentPadding: EdgeInsets.zero,
       dense: true,

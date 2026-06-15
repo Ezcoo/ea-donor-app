@@ -62,18 +62,14 @@ class HomeScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(4, 10, 4, 14),
+                    padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _Pill(
-                          icon: Icons.favorite,
-                          label: 'Mindful giving, ready when you are',
-                        ),
-                        const SizedBox(height: 12),
                         _AmbientSweepText(
                           'Build a pledge that feels generous.',
                           style: theme.textTheme.headlineSmall?.copyWith(
+                            fontSize: 26,
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFF06343A),
                             height: 1.17,
@@ -135,14 +131,14 @@ class _SweepingDonateButton extends StatelessWidget {
       ),
       child: SizedBox(
         width: double.infinity,
-        height: 64,
+        height: 72,
         child: Stack(
           children: [
             Positioned.fill(
               child: FilledButton.icon(
                 onPressed: onPressed,
-                icon: const Icon(Icons.volunteer_activism),
-                label: const Text('Donate now', style: TextStyle(fontSize: 18)),
+                icon: const Icon(Icons.volunteer_activism, size: 24),
+                label: const Text('Donate now', style: TextStyle(fontSize: 21)),
               ),
             ),
             Positioned.fill(
@@ -303,44 +299,6 @@ class _AmbientSweepText extends StatelessWidget {
   }
 }
 
-class _Pill extends StatelessWidget {
-  const _Pill({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.8)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 15, color: colorScheme.primary),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                color: colorScheme.onSurfaceVariant,
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 /// Baseline + boosts = total. Watches both controllers and derives the
 /// total here, at the leaf, so the controllers stay independent.
 class _SummaryCard extends StatelessWidget {
@@ -402,7 +360,7 @@ class _SummaryCard extends StatelessWidget {
       ),
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
           child: Column(
             children: [
               Row(
@@ -427,13 +385,8 @@ class _SummaryCard extends StatelessWidget {
                         Text(
                           'Pledge stack',
                           style: theme.textTheme.titleMedium?.copyWith(
+                            fontSize: 18,
                             fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        Text(
-                          'Baseline plus the boosts you add today',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -441,7 +394,7 @@ class _SummaryCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 12),
               _SummaryRow(label: 'Baseline', amount: baseline),
               _SummaryRow(label: 'Boosts', amount: donation.boostedDollars),
               Divider(
@@ -454,6 +407,7 @@ class _SummaryCard extends StatelessWidget {
                   Text(
                     'Your pledge',
                     style: theme.textTheme.titleMedium?.copyWith(
+                      fontSize: 18,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
@@ -564,6 +518,7 @@ class _PledgeTotalState extends State<_PledgeTotal>
           final totalText = formatDollars(animatedTotal.round());
           final totalStyle = theme.textTheme.headlineMedium!.copyWith(
             color: Colors.white,
+            fontSize: 32,
             fontWeight: FontWeight.w900,
           );
           final edgeColor = color;
@@ -627,11 +582,12 @@ class _SummaryRow extends StatelessWidget {
             style: TextStyle(
               color: theme.colorScheme.onSurfaceVariant,
               fontWeight: FontWeight.w600,
+              fontSize: 16,
             ),
           ),
           Text(
             formatDollars(amount),
-            style: const TextStyle(fontWeight: FontWeight.w800),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
           ),
         ],
       ),
@@ -908,7 +864,7 @@ class _BoostButtonState extends State<_BoostButton>
                                           child: Text(
                                             '+${formatDollars(donation.nextBoost)}',
                                             style: TextStyle(
-                                              fontSize: 43,
+                                              fontSize: 48,
                                               fontWeight: FontWeight.w900,
                                               color: Colors.white,
                                             ),
@@ -922,6 +878,7 @@ class _BoostButtonState extends State<_BoostButton>
                                       textAlign: TextAlign.center,
                                       style: theme.textTheme.labelLarge
                                           ?.copyWith(
+                                            fontSize: 16,
                                             color: Colors.white.withValues(
                                               alpha: 0.84,
                                             ),
@@ -989,6 +946,7 @@ class _BoostHintBubble extends StatelessWidget {
             child: Text(
               'Click on heart to increase',
               style: theme.textTheme.labelMedium?.copyWith(
+                fontSize: 14,
                 color: const Color(0xFF06343A),
                 fontWeight: FontWeight.w800,
               ),

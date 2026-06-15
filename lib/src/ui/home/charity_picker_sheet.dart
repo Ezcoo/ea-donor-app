@@ -59,15 +59,9 @@ class _CharityPickerSheetState extends State<CharityPickerSheet> {
                   Text(
                     'Choose a charity',
                     style: theme.textTheme.headlineSmall?.copyWith(
+                      fontSize: 26,
                       fontWeight: FontWeight.w900,
                       color: const Color(0xFF06343A),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Search every.org and open a giving page when ready.',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -193,6 +187,7 @@ class _MessageState extends StatelessWidget {
             Text(
               title,
               style: theme.textTheme.titleMedium?.copyWith(
+                fontSize: 18,
                 fontWeight: FontWeight.w800,
               ),
               textAlign: TextAlign.center,
@@ -201,6 +196,7 @@ class _MessageState extends StatelessWidget {
             Text(
               message,
               style: theme.textTheme.bodyMedium?.copyWith(
+                fontSize: 16,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
               textAlign: TextAlign.center,
@@ -234,7 +230,7 @@ class _CharityTile extends StatelessWidget {
         ),
         title: Text(
           charity.name,
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
         ),
         subtitle: charity.description == null
             ? null
@@ -242,6 +238,7 @@ class _CharityTile extends StatelessWidget {
                 charity.description!,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 15),
               ),
         trailing: Container(
           width: 34,
