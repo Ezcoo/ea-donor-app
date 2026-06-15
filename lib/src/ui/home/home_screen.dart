@@ -797,35 +797,57 @@ class _BoostButtonState extends State<_BoostButton>
                         child: IgnorePointer(
                           child: ClipPath(
                             clipper: const _HeartClipper(),
-                            child: FractionalTranslation(
-                              translation: Offset(
-                                -1.25 + sweepProgress * 2.5,
-                                0,
-                              ),
-                              child: Opacity(
-                                opacity: sweepStrength,
-                                child: DecoratedBox(
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Colors.transparent,
-                                        const Color(
-                                          0xFF42C5D6,
-                                        ).withValues(alpha: 0.12),
-                                        Colors.white.withValues(alpha: 0.44),
-                                        const Color(
-                                          0xFFBFF8FF,
-                                        ).withValues(alpha: 0.20),
-                                        Colors.transparent,
-                                      ],
-                                      stops: const [0, 0.30, 0.50, 0.70, 1],
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final sweepWidth = constraints.maxWidth * 1.65;
+                                final left =
+                                    -sweepWidth +
+                                    sweepProgress *
+                                        (constraints.maxWidth + sweepWidth);
+
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    Positioned(
+                                      top: 0,
+                                      bottom: 0,
+                                      left: left,
+                                      width: sweepWidth,
+                                      child: Opacity(
+                                        opacity: sweepStrength,
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                Colors.transparent,
+                                                const Color(
+                                                  0xFF42C5D6,
+                                                ).withValues(alpha: 0.10),
+                                                Colors.white.withValues(
+                                                  alpha: 0.40,
+                                                ),
+                                                const Color(
+                                                  0xFFBFF8FF,
+                                                ).withValues(alpha: 0.18),
+                                                Colors.transparent,
+                                              ],
+                                              stops: const [
+                                                0,
+                                                0.32,
+                                                0.50,
+                                                0.68,
+                                                1,
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  child: const SizedBox.expand(),
-                                ),
-                              ),
+                                  ],
+                                );
+                              },
                             ),
                           ),
                         ),
