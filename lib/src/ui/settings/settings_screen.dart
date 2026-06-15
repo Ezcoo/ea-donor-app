@@ -47,60 +47,81 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          _SettingsSection(
-            icon: Icons.savings_outlined,
-            title: 'Baseline donation',
-            subtitle: 'The amount you always pledge, before any boosts.',
-            child: TextField(
-              controller: _baselineController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: const InputDecoration(
-                prefixText: r'$ ',
-                labelText: 'Amount in dollars',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: _saveBaseline,
-            ),
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFFEAF7EC), Color(0xFFF9FCF6)],
           ),
-          const SizedBox(height: 16),
-          _SettingsSection(
-            icon: Icons.notifications_active_outlined,
-            title: 'Nudge reminders',
-            subtitle: 'How often to remind you to finish a pledged '
-                'donation. Works on Android, iOS and macOS.',
-            child: RadioGroup<NudgeInterval>(
-              groupValue: settings.nudgeInterval,
-              onChanged: (value) {
-                if (value != null) {
-                  context.read<SettingsState>().setNudgeInterval(value);
-                }
-              },
-              child: Column(
-                children: [
-                  for (final interval in NudgeInterval.values)
-                    RadioListTile<NudgeInterval>(
-                      value: interval,
-                      title: Text(interval.label),
-                      contentPadding: EdgeInsets.zero,
-                      dense: true,
-                    ),
-                ],
+        ),
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            Text(
+              'Tune your pledge rhythm.',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                color: const Color(0xFF123A28),
+                fontWeight: FontWeight.w900,
+                height: 1.1,
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-          Center(
-            child: Text(
-              'Donor · pledge first, give when ready',
-              style: theme.textTheme.bodySmall!
-                  .copyWith(color: theme.colorScheme.outline),
+            const SizedBox(height: 6),
+            Text(
+              'Small defaults make generosity easier when the moment comes.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 18),
+            _SettingsSection(
+              icon: Icons.savings_outlined,
+              title: 'Baseline donation',
+              subtitle: 'The amount you always pledge, before any boosts.',
+              child: TextField(
+                controller: _baselineController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: const InputDecoration(
+                  prefixText: r'$ ',
+                  labelText: 'Amount in dollars',
+                ),
+                onChanged: _saveBaseline,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _SettingsSection(
+              icon: Icons.notifications_active_outlined,
+              title: 'Nudge reminders',
+              subtitle:
+                  'How often to remind you to finish a pledged '
+                  'donation. Works on Android, iOS and macOS.',
+              child: RadioGroup<NudgeInterval>(
+                groupValue: settings.nudgeInterval,
+                onChanged: (value) {
+                  if (value != null) {
+                    context.read<SettingsState>().setNudgeInterval(value);
+                  }
+                },
+                child: Column(
+                  children: [
+                    for (final interval in NudgeInterval.values)
+                      _NudgeOption(interval: interval),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Center(
+              child: Text(
+                'Donor · pledge first, give when ready',
+                style: theme.textTheme.bodySmall!.copyWith(
+                  color: theme.colorScheme.outline,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -123,30 +144,78 @@ class _SettingsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(title, style: theme.textTheme.titleMedium),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: theme.textTheme.bodySmall!
-                  .copyWith(color: theme.colorScheme.outline),
-            ),
-            const SizedBox(height: 16),
-            child,
-          ],
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.08),
+            blurRadius: 26,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(icon, color: theme.colorScheme.primary),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                subtitle,
+                style: theme.textTheme.bodySmall!.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 16),
+              child,
+            ],
+          ),
         ),
       ),
+    );
+  }
+}
+
+class _NudgeOption extends StatelessWidget {
+  const _NudgeOption({required this.interval});
+
+  final NudgeInterval interval;
+
+  @override
+  Widget build(BuildContext context) {
+    return RadioListTile<NudgeInterval>(
+      value: interval,
+      title: Text(
+        interval.label,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      contentPadding: EdgeInsets.zero,
+      dense: true,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     );
   }
 }

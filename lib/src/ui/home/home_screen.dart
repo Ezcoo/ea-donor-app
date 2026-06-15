@@ -20,6 +20,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -29,21 +30,22 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings',
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const SettingsScreen()),
-            ),
+            onPressed: () => Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
           ),
         ],
       ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            stops: const [0, 0.65],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            stops: const [0, 0.46, 1],
             colors: [
-              colorScheme.primaryContainer.withValues(alpha: 0.55),
-              colorScheme.surface,
+              const Color(0xFFE6F7E9),
+              colorScheme.primaryContainer.withValues(alpha: 0.45),
+              const Color(0xFFF9FCF6),
             ],
           ),
         ),
@@ -53,27 +55,105 @@ class HomeScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 10, 4, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _Pill(
+                        icon: Icons.favorite,
+                        label: 'Mindful giving, ready when you are',
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Build a pledge that feels generous.',
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF123A28),
+                          height: 1.05,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 const _SummaryCard(),
-                const Expanded(child: Center(child: _BoostButton())),
-                FilledButton.icon(
-                  onPressed: () {
-                    context.read<SfxPlayer>().donate();
-                    showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      showDragHandle: true,
-                      builder: (_) => const CharityPickerSheet(),
-                    );
-                  },
-                  icon: const Icon(Icons.volunteer_activism),
-                  label: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Text('Donate now', style: TextStyle(fontSize: 18)),
+                const Expanded(
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: _BoostButton(),
+                    ),
+                  ),
+                ),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(22),
+                    boxShadow: [
+                      BoxShadow(
+                        color: colorScheme.primary.withValues(alpha: 0.24),
+                        blurRadius: 26,
+                        offset: const Offset(0, 12),
+                      ),
+                    ],
+                  ),
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      context.read<SfxPlayer>().donate();
+                      showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        showDragHandle: true,
+                        builder: (_) => const CharityPickerSheet(),
+                      );
+                    },
+                    icon: const Icon(Icons.volunteer_activism),
+                    label: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 17),
+                      child: Text('Donate now', style: TextStyle(fontSize: 18)),
+                    ),
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.72),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.8)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 15, color: colorScheme.primary),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -125,61 +205,117 @@ class _SummaryCard extends StatelessWidget {
     final total = baseline + donation.boostedDollars;
     final theme = Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-        child: Column(
-          children: [
-            _SummaryRow(label: 'Baseline', amount: baseline),
-            _SummaryRow(label: 'Boosts', amount: donation.boostedDollars),
-            const Divider(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Your pledge', style: theme.textTheme.titleMedium),
-                // Counts up/down to the new total instead of jumping, so
-                // a boost visibly "lands" in the summary.
-                TweenAnimationBuilder<double>(
-                  tween: Tween(end: total.toDouble()),
-                  duration: const Duration(milliseconds: 600),
-                  curve: Curves.easeOutCubic,
-                  builder: (context, animatedTotal, _) => Text(
-                    formatDollars(animatedTotal.round()),
-                    style: theme.textTheme.headlineMedium!.copyWith(
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.primary.withValues(alpha: 0.10),
+            blurRadius: 30,
+            offset: const Offset(0, 16),
+          ),
+        ],
+      ),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      Icons.savings_outlined,
                       color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1,
                     ),
                   ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TextButton.icon(
-                  onPressed: donation.boostedDollars == 0
-                      ? null
-                      : () => _confirmReset(context),
-                  icon: const Icon(Icons.replay, size: 16),
-                  label: const Text('Reset boosts'),
-                ),
-                TextButton.icon(
-                  onPressed: donation.boostedDollars == 0
-                      ? null
-                      : () {
-                          final state = context.read<DonationState>();
-                          state.removeLastBoost();
-                          // Blip pitched to the rung we stepped back to, so
-                          // undoing descends the scale that boosting climbed.
-                          context.read<SfxPlayer>().boost(state.rung);
-                        },
-                  icon: const Icon(Icons.undo, size: 16),
-                  label: const Text('Remove last'),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Pledge stack',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          'Baseline plus the boosts you add today',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              _SummaryRow(label: 'Baseline', amount: baseline),
+              _SummaryRow(label: 'Boosts', amount: donation.boostedDollars),
+              Divider(
+                height: 20,
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.7),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Your pledge',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  // Counts up/down to the new total instead of jumping, so
+                  // a boost visibly "lands" in the summary.
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(end: total.toDouble()),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.easeOutCubic,
+                    builder: (context, animatedTotal, _) => Text(
+                      formatDollars(animatedTotal.round()),
+                      style: theme.textTheme.headlineMedium!.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  TextButton.icon(
+                    onPressed: donation.boostedDollars == 0
+                        ? null
+                        : () => _confirmReset(context),
+                    icon: const Icon(Icons.replay, size: 16),
+                    label: const Text('Reset boosts'),
+                  ),
+                  TextButton.icon(
+                    onPressed: donation.boostedDollars == 0
+                        ? null
+                        : () {
+                            final state = context.read<DonationState>();
+                            state.removeLastBoost();
+                            // Blip pitched to the rung we stepped back to, so
+                            // undoing descends the scale that boosting climbed.
+                            context.read<SfxPlayer>().boost(state.rung);
+                          },
+                    icon: const Icon(Icons.undo, size: 16),
+                    label: const Text('Remove last'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -200,9 +336,17 @@ class _SummaryRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label,
-              style: TextStyle(color: theme.colorScheme.onSurfaceVariant)),
-          Text(formatDollars(amount)),
+          Text(
+            label,
+            style: TextStyle(
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Text(
+            formatDollars(amount),
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
         ],
       ),
     );
@@ -230,13 +374,17 @@ class _BoostButtonState extends State<_BoostButton>
   // Quick squash (25% of the time), springy recovery (75%).
   late final Animation<double> _scale = TweenSequence<double>([
     TweenSequenceItem(
-      tween: Tween(begin: 1.0, end: 0.85)
-          .chain(CurveTween(curve: Curves.easeOut)),
+      tween: Tween(
+        begin: 1.0,
+        end: 0.85,
+      ).chain(CurveTween(curve: Curves.easeOut)),
       weight: 25,
     ),
     TweenSequenceItem(
-      tween: Tween(begin: 0.85, end: 1.0)
-          .chain(CurveTween(curve: Curves.elasticOut)),
+      tween: Tween(
+        begin: 0.85,
+        end: 1.0,
+      ).chain(CurveTween(curve: Curves.elasticOut)),
       weight: 75,
     ),
   ]).animate(_press);
@@ -264,85 +412,104 @@ class _BoostButtonState extends State<_BoostButton>
   Widget build(BuildContext context) {
     final donation = context.watch<DonationState>();
     final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
 
-    return Stack(
-      clipBehavior: Clip.none,
-      alignment: Alignment.center,
-      children: [
-        ScaleTransition(
-          scale: _scale,
-          child: DecoratedBox(
+    return SizedBox(
+      width: 280,
+      height: 280,
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 280,
+            height: 280,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [colorScheme.primary, colorScheme.tertiary],
+              gradient: RadialGradient(
+                colors: [
+                  colorScheme.primary.withValues(alpha: 0.18),
+                  colorScheme.primary.withValues(alpha: 0),
+                ],
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: colorScheme.primary.withValues(alpha: 0.4),
-                  blurRadius: 32,
-                  offset: const Offset(0, 12),
-                ),
-              ],
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                customBorder: const CircleBorder(),
-                onTap: _boost,
-                child: SizedBox(
-                  width: 230,
-                  height: 230,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        transitionBuilder: (child, animation) =>
-                            ScaleTransition(
-                          scale: animation,
-                          child: FadeTransition(
-                            opacity: animation,
-                            child: child,
+          ),
+          ScaleTransition(
+            scale: _scale,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [colorScheme.primary, colorScheme.tertiary],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: colorScheme.primary.withValues(alpha: 0.32),
+                    blurRadius: 42,
+                    offset: const Offset(0, 18),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: _boost,
+                  child: SizedBox(
+                    width: 230,
+                    height: 230,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 250),
+                          transitionBuilder: (child, animation) =>
+                              ScaleTransition(
+                                scale: animation,
+                                child: FadeTransition(
+                                  opacity: animation,
+                                  child: child,
+                                ),
+                              ),
+                          child: Text(
+                            '+${formatDollars(donation.nextBoost)}',
+                            // Keyed by amount so the switcher sees a "new"
+                            // child each rung and animates the swap.
+                            key: ValueKey(donation.nextBoost),
+                            style: TextStyle(
+                              fontSize: 46,
+                              fontWeight: FontWeight.w900,
+                              color: colorScheme.onPrimary,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          '+${formatDollars(donation.nextBoost)}',
-                          // Keyed by amount so the switcher sees a "new"
-                          // child each rung and animates the swap.
-                          key: ValueKey(donation.nextBoost),
-                          style: TextStyle(
-                            fontSize: 44,
+                        const SizedBox(height: 4),
+                        Text(
+                          'boost your pledge',
+                          style: theme.textTheme.labelLarge?.copyWith(
+                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
                             fontWeight: FontWeight.w800,
-                            color: colorScheme.onPrimary,
-                            letterSpacing: -1,
                           ),
                         ),
-                      ),
-                      Text(
-                        'boost your pledge',
-                        style: TextStyle(
-                          color: colorScheme.onPrimary.withValues(alpha: 0.8),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
           ),
-        ),
-        for (final burst in _bursts)
-          _FloatingBoost(
-            key: ValueKey(burst.id),
-            amount: burst.amount,
-            seed: burst.id,
-            onDone: () =>
-                setState(() => _bursts.removeWhere((b) => b.id == burst.id)),
-          ),
-      ],
+          for (final burst in _bursts)
+            _FloatingBoost(
+              key: ValueKey(burst.id),
+              amount: burst.amount,
+              seed: burst.id,
+              onDone: () =>
+                  setState(() => _bursts.removeWhere((b) => b.id == burst.id)),
+            ),
+        ],
+      ),
     );
   }
 }

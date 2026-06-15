@@ -40,24 +40,49 @@ class _CharityPickerSheetState extends State<CharityPickerSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Padding(
       // Keeps the text field above the on-screen keyboard.
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * 0.7,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Choose a charity',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF123A28),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Search every.org and open a giving page when ready.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
               child: TextField(
                 controller: _searchController,
                 autofocus: true,
                 decoration: InputDecoration(
                   labelText: 'Search charities on every.org',
                   hintText: 'e.g. clean water, animals, education',
-                  border: const OutlineInputBorder(),
+                  prefixIcon: const Icon(Icons.search),
                   suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
+                    icon: const Icon(Icons.arrow_forward),
                     onPressed: _search,
                   ),
                 ),
@@ -66,7 +91,7 @@ class _CharityPickerSheetState extends State<CharityPickerSheet> {
             ),
             Expanded(
               child: _results == null
-                  ? const Center(child: Text('Find a charity to donate to'))
+                  ? _EmptySearchState(colorScheme: theme.colorScheme)
                   : FutureBuilder<List<Charity>>(
                       future: _results,
                       builder: (context, snapshot) {
@@ -76,27 +101,105 @@ class _CharityPickerSheetState extends State<CharityPickerSheet> {
                           );
                         }
                         if (snapshot.hasError) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Text(
-                                '${snapshot.error}',
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
+                          return _MessageState(
+                            icon: Icons.cloud_off_outlined,
+                            title: 'Search failed',
+                            message: '${snapshot.error}',
                           );
                         }
                         final charities = snapshot.requireData;
                         if (charities.isEmpty) {
-                          return const Center(child: Text('No results'));
+                          return const _MessageState(
+                            icon: Icons.search_off_outlined,
+                            title: 'No results',
+                            message:
+                                'Try a broader cause or organization name.',
+                          );
                         }
                         return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(12, 4, 12, 18),
                           itemCount: charities.length,
                           itemBuilder: (context, index) =>
                               _CharityTile(charity: charities[index]),
                         );
                       },
                     ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EmptySearchState extends StatelessWidget {
+  const _EmptySearchState({required this.colorScheme});
+
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return _MessageState(
+      icon: Icons.favorite_border,
+      title: 'Find somewhere meaningful',
+      message: 'Search by cause, place, or nonprofit name.',
+      iconColor: colorScheme.primary,
+    );
+  }
+}
+
+class _MessageState extends StatelessWidget {
+  const _MessageState({
+    required this.icon,
+    required this.title,
+    required this.message,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final String title;
+  final String message;
+  final Color? iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 54,
+              height: 54,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(
+                  alpha: 0.75,
+                ),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Icon(
+                icon,
+                color: iconColor ?? theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -115,23 +218,44 @@ class _CharityTile extends StatelessWidget {
     final logoUrl = charity.logoUrl;
     final profileUrl = charity.profileUrl;
 
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: logoUrl == null ? null : NetworkImage(logoUrl),
-        child: logoUrl == null ? const Icon(Icons.favorite_outline) : null,
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        leading: CircleAvatar(
+          radius: 24,
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+          backgroundImage: logoUrl == null ? null : NetworkImage(logoUrl),
+          child: logoUrl == null ? const Icon(Icons.favorite_outline) : null,
+        ),
+        title: Text(
+          charity.name,
+          style: const TextStyle(fontWeight: FontWeight.w800),
+        ),
+        subtitle: charity.description == null
+            ? null
+            : Text(
+                charity.description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+        trailing: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            Icons.open_in_new,
+            size: 17,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        onTap: profileUrl == null
+            ? null
+            : () => launchUrl(Uri.parse(profileUrl)),
       ),
-      title: Text(charity.name),
-      subtitle: charity.description == null
-          ? null
-          : Text(
-              charity.description!,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-      trailing: const Icon(Icons.open_in_new, size: 18),
-      onTap: profileUrl == null
-          ? null
-          : () => launchUrl(Uri.parse(profileUrl)),
     );
   }
 }
