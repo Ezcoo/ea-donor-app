@@ -135,6 +135,7 @@ class _SweepingDonateButton extends StatelessWidget {
       ),
       child: SizedBox(
         width: double.infinity,
+        height: 64,
         child: Stack(
           children: [
             Positioned.fill(
@@ -143,10 +144,6 @@ class _SweepingDonateButton extends StatelessWidget {
                 icon: const Icon(Icons.volunteer_activism),
                 label: const Text('Donate now', style: TextStyle(fontSize: 18)),
               ),
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 17),
-              child: SizedBox(width: double.infinity),
             ),
             Positioned.fill(
               child: IgnorePointer(
@@ -717,6 +714,7 @@ class _BoostButtonState extends State<_BoostButton>
   /// Bursts currently floating up; each removes itself when it finishes.
   final List<({int id, int amount})> _bursts = [];
   int _nextBurstId = 0;
+  bool _showHint = true;
 
   @override
   void dispose() {
@@ -731,7 +729,10 @@ class _BoostButtonState extends State<_BoostButton>
     context.read<SfxPlayer>().boost(donation.rung); // pitch follows the rung
     donation.boost();
     _press.forward(from: 0);
-    setState(() => _bursts.add((id: _nextBurstId++, amount: amount)));
+    setState(() {
+      _showHint = false;
+      _bursts.add((id: _nextBurstId++, amount: amount));
+    });
   }
 
   @override
@@ -741,13 +742,14 @@ class _BoostButtonState extends State<_BoostButton>
     final ambientSweep = _AmbientSweepScope.maybeOf(context);
     const heartTop = Color(0xFF00A6BD);
     const heartBottom = Color(0xFF006B80);
+    final showHint = _showHint && donation.boostedDollars == 0;
 
     return SizedBox(
       width: 280,
-      height: 280,
+      height: 318,
       child: Stack(
         clipBehavior: Clip.none,
-        alignment: Alignment.center,
+        alignment: Alignment.bottomCenter,
         children: [
           Container(
             width: 280,
@@ -760,6 +762,16 @@ class _BoostButtonState extends State<_BoostButton>
                   heartBottom.withValues(alpha: 0),
                 ],
               ),
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 4,
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOut,
+              opacity: showHint ? 1 : 0,
+              child: const IgnorePointer(child: _BoostHintBubble()),
             ),
           ),
           AnimatedBuilder(
@@ -945,6 +957,53 @@ class _BoostButtonState extends State<_BoostButton>
             ),
         ],
       ),
+    );
+  }
+}
+
+class _BoostHintBubble extends StatelessWidget {
+  const _BoostHintBubble();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.92),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Colors.white),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF06343A).withValues(alpha: 0.12),
+                blurRadius: 18,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Text(
+              'Click on heart to increase',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: const Color(0xFF06343A),
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          right: 34,
+          bottom: -5,
+          child: Transform.rotate(
+            angle: math.pi / 4,
+            child: Container(width: 10, height: 10, color: Colors.white),
+          ),
+        ),
+      ],
     );
   }
 }
