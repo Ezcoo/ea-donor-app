@@ -36,8 +36,8 @@ control (free keys at <https://www.every.org/charity-api>):
 flutter run --dart-define=EVERY_ORG_API_KEY=pk_live_your_key
 ```
 
-In VS Code, add it under `args` in `.vscode/launch.json` if you want F5 runs
-to include it.
+In VS Code, add it under `toolArgs` in `.vscode/launch.json` if you want F5
+runs to include it.
 
 ## Architecture
 

@@ -52,53 +52,43 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 10, 4, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _Pill(
-                        icon: Icons.favorite,
-                        label: 'Mindful giving, ready when you are',
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Build a pledge that feels generous.',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: const Color(0xFF06343A),
-                          height: 1.05,
+          child: _AmbientSweepScope(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 10, 4, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _Pill(
+                          icon: Icons.favorite,
+                          label: 'Mindful giving, ready when you are',
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                const _SummaryCard(),
-                const Expanded(
-                  child: Center(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: _BoostButton(),
+                        const SizedBox(height: 12),
+                        _AmbientSweepText(
+                          'Build a pledge that feels generous.',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: const Color(0xFF06343A),
+                            height: 1.05,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ),
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(22),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorScheme.primary.withValues(alpha: 0.24),
-                        blurRadius: 26,
-                        offset: const Offset(0, 12),
+                  const _SummaryCard(),
+                  const Expanded(
+                    child: Center(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: _BoostButton(),
                       ),
-                    ],
+                    ),
                   ),
-                  child: FilledButton.icon(
+                  _SweepingDonateButton(
                     onPressed: () {
                       context.read<SfxPlayer>().donate();
                       showModalBottomSheet<void>(
@@ -108,18 +98,207 @@ class HomeScreen extends StatelessWidget {
                         builder: (_) => const CharityPickerSheet(),
                       );
                     },
-                    icon: const Icon(Icons.volunteer_activism),
-                    label: const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 17),
-                      child: Text('Donate now', style: TextStyle(fontSize: 18)),
-                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+class _SweepingDonateButton extends StatelessWidget {
+  const _SweepingDonateButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final ambientSweep = _AmbientSweepScope.maybeOf(context);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.24),
+            blurRadius: 26,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: FilledButton.icon(
+                onPressed: onPressed,
+                icon: const Icon(Icons.volunteer_activism),
+                label: const Text('Donate now', style: TextStyle(fontSize: 18)),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 17),
+              child: SizedBox(width: double.infinity),
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: AnimatedBuilder(
+                    animation: ambientSweep ?? kAlwaysDismissedAnimation,
+                    builder: (context, _) {
+                      final sweepValue = ambientSweep?.value ?? 1.0;
+                      final activeT = (sweepValue / 0.42).clamp(0.0, 1.0);
+                      final sweepProgress = Curves.easeInOutCubic.transform(
+                        activeT,
+                      );
+                      final sweepStrength =
+                          math.sin(activeT * math.pi).clamp(0.0, 1.0) * 0.58;
+
+                      return FractionalTranslation(
+                        translation: Offset(-1.15 + sweepProgress * 2.3, 0),
+                        child: Opacity(
+                          opacity: sweepStrength,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.transparent,
+                                  const Color(
+                                    0xFF42C5D6,
+                                  ).withValues(alpha: 0.10),
+                                  Colors.white.withValues(alpha: 0.36),
+                                  const Color(
+                                    0xFFBFF8FF,
+                                  ).withValues(alpha: 0.18),
+                                  Colors.transparent,
+                                ],
+                                stops: const [0, 0.30, 0.50, 0.70, 1],
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AmbientSweepScope extends StatefulWidget {
+  const _AmbientSweepScope({required this.child});
+
+  final Widget child;
+
+  static Animation<double>? maybeOf(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<_AmbientSweepInherited>()
+        ?.animation;
+  }
+
+  @override
+  State<_AmbientSweepScope> createState() => _AmbientSweepScopeState();
+}
+
+class _AmbientSweepScopeState extends State<_AmbientSweepScope>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _sweep = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 5200),
+  )..repeat();
+
+  @override
+  void dispose() {
+    _sweep.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _AmbientSweepInherited(animation: _sweep, child: widget.child);
+  }
+}
+
+class _AmbientSweepInherited extends InheritedNotifier<Animation<double>> {
+  const _AmbientSweepInherited({
+    required Animation<double> animation,
+    required super.child,
+  }) : super(notifier: animation);
+
+  Animation<double> get animation => notifier!;
+}
+
+class _AmbientSweepText extends StatelessWidget {
+  const _AmbientSweepText(this.text, {required this.style});
+
+  final String text;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    final sweep = _AmbientSweepScope.maybeOf(context);
+    final baseColor = style?.color ?? const Color(0xFF06343A);
+    const sweepColor = Color(0xFF42C5D6);
+
+    return AnimatedBuilder(
+      animation: sweep ?? kAlwaysDismissedAnimation,
+      builder: (context, _) {
+        final sweepValue = sweep?.value ?? 1.0;
+        final activeT = (sweepValue / 0.42).clamp(0.0, 1.0);
+        final sweepProgress = Curves.easeInOutCubic.transform(activeT);
+        final sweepStrength =
+            math.sin(activeT * math.pi).clamp(0.0, 1.0) * 0.58;
+        final shoulderColor = Color.lerp(
+          baseColor,
+          sweepColor,
+          0.34 * sweepStrength,
+        )!;
+        final centerColor = Color.lerp(
+          baseColor,
+          Colors.white,
+          0.62 * sweepStrength,
+        )!;
+
+        return ShaderMask(
+          blendMode: BlendMode.srcIn,
+          shaderCallback: (bounds) {
+            final sweepWidth = bounds.width * 1.15;
+            final left =
+                bounds.left -
+                sweepWidth +
+                sweepProgress * (bounds.width + sweepWidth * 2);
+
+            return LinearGradient(
+              colors: [
+                baseColor,
+                baseColor,
+                shoulderColor,
+                centerColor,
+                shoulderColor,
+                baseColor,
+                baseColor,
+              ],
+              stops: const [0, 0.20, 0.38, 0.50, 0.62, 0.80, 1],
+            ).createShader(
+              Rect.fromLTWH(left, bounds.top, sweepWidth, bounds.height),
+            );
+          },
+          child: Text(text, style: style?.copyWith(color: Colors.white)),
+        );
+      },
     );
   }
 }
@@ -275,20 +454,7 @@ class _SummaryCard extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  // Counts up/down to the new total instead of jumping, so
-                  // a boost visibly "lands" in the summary.
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(end: total.toDouble()),
-                    duration: const Duration(milliseconds: 600),
-                    curve: Curves.easeOutCubic,
-                    builder: (context, animatedTotal, _) => Text(
-                      formatDollars(animatedTotal.round()),
-                      style: theme.textTheme.headlineMedium!.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
+                  _PledgeTotal(amount: total),
                 ],
               ),
               Row(
@@ -319,6 +485,120 @@ class _SummaryCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _PledgeTotal extends StatefulWidget {
+  const _PledgeTotal({required this.amount});
+
+  final int amount;
+
+  @override
+  State<_PledgeTotal> createState() => _PledgeTotalState();
+}
+
+class _PledgeTotalState extends State<_PledgeTotal>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _glow = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2200),
+  );
+
+  late final Animation<double> _glowAmount = TweenSequence<double>([
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 0.0,
+        end: 1.0,
+      ).chain(CurveTween(curve: Curves.easeOutCubic)),
+      weight: 35,
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.0,
+        end: 0.0,
+      ).chain(CurveTween(curve: Curves.easeOut)),
+      weight: 65,
+    ),
+  ]).animate(_glow);
+
+  @override
+  void didUpdateWidget(covariant _PledgeTotal oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.amount > oldWidget.amount) {
+      _glow.forward(from: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _glow.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    // Counts up/down to the new total instead of jumping, so a boost visibly
+    // "lands" in the summary.
+    return TweenAnimationBuilder<double>(
+      tween: Tween(end: widget.amount.toDouble()),
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeOutCubic,
+      builder: (context, animatedTotal, _) => AnimatedBuilder(
+        animation: _glowAmount,
+        builder: (context, _) {
+          final glow = _glowAmount.value;
+          const sweepDelay = 0.08;
+          final delayedSweep = ((_glow.value - sweepDelay) / (1 - sweepDelay))
+              .clamp(0.0, 1.0);
+          final sweepProgress = Curves.easeOutQuart.transform(delayedSweep);
+          final color = theme.colorScheme.primary;
+          const sweepColor = Color(0xFF42C5D6);
+          final totalText = formatDollars(animatedTotal.round());
+          final totalStyle = theme.textTheme.headlineMedium!.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w900,
+          );
+          final edgeColor = color;
+          final shoulderColor = Color.lerp(color, sweepColor, 0.42)!;
+          final centerColor = Color.lerp(color, Colors.white, 0.74)!;
+
+          return Transform.scale(
+            scale: 1 + glow * 0.024,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
+              child: ShaderMask(
+                blendMode: BlendMode.srcIn,
+                shaderCallback: (bounds) {
+                  final sweepWidth = bounds.width * 1.65;
+                  final left =
+                      bounds.left -
+                      sweepWidth +
+                      sweepProgress * (bounds.width + sweepWidth * 2);
+
+                  return LinearGradient(
+                    colors: [
+                      edgeColor,
+                      edgeColor,
+                      shoulderColor,
+                      centerColor,
+                      shoulderColor,
+                      edgeColor,
+                      edgeColor,
+                    ],
+                    stops: const [0, 0.20, 0.38, 0.50, 0.62, 0.80, 1],
+                  ).createShader(
+                    Rect.fromLTWH(left, bounds.top, sweepWidth, bounds.height),
+                  );
+                },
+                child: Text(totalText, style: totalStyle),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -451,6 +731,7 @@ class _BoostButtonState extends State<_BoostButton>
   Widget build(BuildContext context) {
     final donation = context.watch<DonationState>();
     final theme = Theme.of(context);
+    final ambientSweep = _AmbientSweepScope.maybeOf(context);
     const heartTop = Color(0xFF00A6BD);
     const heartBottom = Color(0xFF006B80);
 
@@ -475,83 +756,149 @@ class _BoostButtonState extends State<_BoostButton>
             ),
           ),
           AnimatedBuilder(
-            animation: Listenable.merge([_press, _heartbeat]),
-            builder: (context, child) {
+            animation: Listenable.merge([_press, _heartbeat, ?ambientSweep]),
+            builder: (context, _) {
               final scale = _press.isAnimating
                   ? _scale.value
                   : _idleScale.value;
+              final sweepValue = ambientSweep?.value ?? 1.0;
+              final activeT = (sweepValue / 0.42).clamp(0.0, 1.0);
+              final sweepProgress = Curves.easeInOutCubic.transform(activeT);
+              final sweepStrength =
+                  math.sin(activeT * math.pi).clamp(0.0, 1.0) * 0.68;
 
-              return Transform.scale(scale: scale, child: child);
-            },
-            child: DecoratedBox(
-              decoration: ShapeDecoration(
-                shape: const _HeartBorder(),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [heartTop, heartBottom],
-                ),
-                shadows: [
-                  BoxShadow(
-                    color: heartBottom.withValues(alpha: 0.36),
-                    blurRadius: 42,
-                    offset: const Offset(0, 18),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                shape: const _HeartBorder(),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  key: const Key('boost-button'),
-                  customBorder: const _HeartBorder(),
-                  onTap: _boost,
-                  child: SizedBox(
-                    width: 250,
-                    height: 230,
-                    child: Transform.translate(
-                      offset: const Offset(0, -10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 250),
-                            transitionBuilder: (child, animation) =>
-                                ScaleTransition(
-                                  scale: animation,
-                                  child: FadeTransition(
-                                    opacity: animation,
-                                    child: child,
+              return Transform.scale(
+                scale: scale,
+                child: SizedBox(
+                  width: 250,
+                  height: 230,
+                  child: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: ShapeDecoration(
+                            shape: const _HeartBorder(),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [heartTop, heartBottom],
+                            ),
+                            shadows: [
+                              BoxShadow(
+                                color: heartBottom.withValues(alpha: 0.36),
+                                blurRadius: 42,
+                                offset: const Offset(0, 18),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: ClipPath(
+                            clipper: const _HeartClipper(),
+                            child: FractionalTranslation(
+                              translation: Offset(
+                                -1.25 + sweepProgress * 2.5,
+                                0,
+                              ),
+                              child: Opacity(
+                                opacity: sweepStrength,
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.transparent,
+                                        const Color(
+                                          0xFF42C5D6,
+                                        ).withValues(alpha: 0.12),
+                                        Colors.white.withValues(alpha: 0.44),
+                                        const Color(
+                                          0xFFBFF8FF,
+                                        ).withValues(alpha: 0.20),
+                                        Colors.transparent,
+                                      ],
+                                      stops: const [0, 0.30, 0.50, 0.70, 1],
+                                    ),
                                   ),
+                                  child: const SizedBox.expand(),
                                 ),
-                            child: Text(
-                              '+${formatDollars(donation.nextBoost)}',
-                              // Keyed by amount so the switcher sees a "new"
-                              // child each rung and animates the swap.
-                              key: ValueKey(donation.nextBoost),
-                              style: TextStyle(
-                                fontSize: 43,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'boost your pledge',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.84),
-                              fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Material(
+                        color: Colors.transparent,
+                        shape: const _HeartBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          key: const Key('boost-button'),
+                          customBorder: const _HeartBorder(),
+                          onTap: _boost,
+                          child: Center(
+                            child: Transform.translate(
+                              offset: const Offset(0, -8),
+                              child: SizedBox(
+                                width: 184,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    AnimatedSwitcher(
+                                      duration: const Duration(
+                                        milliseconds: 250,
+                                      ),
+                                      transitionBuilder: (child, animation) =>
+                                          ScaleTransition(
+                                            scale: animation,
+                                            child: FadeTransition(
+                                              opacity: animation,
+                                              child: child,
+                                            ),
+                                          ),
+                                      child: SizedBox(
+                                        key: ValueKey(donation.nextBoost),
+                                        width: 184,
+                                        height: 58,
+                                        child: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            '+${formatDollars(donation.nextBoost)}',
+                                            style: TextStyle(
+                                              fontSize: 43,
+                                              fontWeight: FontWeight.w900,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      'boost your pledge',
+                                      textAlign: TextAlign.center,
+                                      style: theme.textTheme.labelLarge
+                                          ?.copyWith(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.84,
+                                            ),
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
           for (final burst in _bursts)
             for (var i = 0; i < 5; i++)
@@ -648,6 +995,17 @@ class _HeartBorder extends ShapeBorder {
 
   @override
   ShapeBorder scale(double t) => const _HeartBorder();
+}
+
+class _HeartClipper extends CustomClipper<Path> {
+  const _HeartClipper();
+
+  @override
+  Path getClip(Size size) =>
+      const _HeartBorder().getOuterPath(Offset.zero & size);
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
 
 class _FloatingHeart extends StatelessWidget {

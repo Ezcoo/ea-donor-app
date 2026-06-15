@@ -6,7 +6,7 @@
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
-      "args": [
+      "toolArgs": [
         "--dart-define=EVERY_ORG_API_KEY=pk_live_6e0a9c326164e78a6ab8eb9d1063ae69"
       ]
     },
@@ -16,7 +16,7 @@
       "type": "dart",
       "program": "lib/main.dart",
       "flutterMode": "profile",
-      "args": [
+      "toolArgs": [
         "--dart-define=EVERY_ORG_API_KEY=pk_live_6e0a9c326164e78a6ab8eb9d1063ae69"
       ]
     },
@@ -26,7 +26,7 @@
       "type": "dart",
       "program": "lib/main.dart",
       "flutterMode": "release",
-      "args": [
+      "toolArgs": [
         "--dart-define=EVERY_ORG_API_KEY=pk_live_6e0a9c326164e78a6ab8eb9d1063ae69"
       ]
     }
