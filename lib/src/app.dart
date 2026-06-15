@@ -8,7 +8,7 @@ class DonorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF0F8F5F),
+      seedColor: const Color(0xFF008EA8),
       brightness: Brightness.light,
     );
     return MaterialApp(
@@ -17,17 +17,17 @@ class DonorApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,
-        scaffoldBackgroundColor: const Color(0xFFF6FAF4),
+        scaffoldBackgroundColor: const Color(0xFFF3FBFC),
         fontFamily: 'Roboto',
         textTheme: ThemeData.light().textTheme.apply(
-          bodyColor: const Color(0xFF183326),
-          displayColor: const Color(0xFF183326),
+          bodyColor: const Color(0xFF082F36),
+          displayColor: const Color(0xFF082F36),
         ),
         cardTheme: CardThemeData(
           elevation: 0,
           color: Colors.white.withValues(alpha: 0.86),
           margin: EdgeInsets.zero,
-          shadowColor: const Color(0xFF16422D).withValues(alpha: 0.18),
+          shadowColor: const Color(0xFF06343A).withValues(alpha: 0.18),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(24),
             side: BorderSide(
@@ -56,7 +56,7 @@ class DonorApp extends StatelessWidget {
           style: FilledButton.styleFrom(
             elevation: 0,
             foregroundColor: Colors.white,
-            backgroundColor: const Color(0xFF0C7C55),
+            backgroundColor: const Color(0xFF007F96),
             textStyle: const TextStyle(fontWeight: FontWeight.w800),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
@@ -65,7 +65,7 @@ class DonorApp extends StatelessWidget {
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: const Color(0xFF0B6B49),
+            foregroundColor: const Color(0xFF006B80),
             textStyle: const TextStyle(fontWeight: FontWeight.w700),
           ),
         ),
@@ -77,11 +77,11 @@ class DonorApp extends StatelessWidget {
           titleTextStyle: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w800,
-            color: Color(0xFF103D20),
+            color: Color(0xFF06343A),
           ),
         ),
         bottomSheetTheme: const BottomSheetThemeData(
-          backgroundColor: Color(0xFFF8FBF6),
+          backgroundColor: Color(0xFFF5FBFC),
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(28)),

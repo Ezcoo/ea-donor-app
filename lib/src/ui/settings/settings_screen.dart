@@ -52,7 +52,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFFEAF7EC), Color(0xFFF9FCF6)],
+            colors: [Color(0xFFE1F7FA), Color(0xFFF7FCFD)],
           ),
         ),
         child: ListView(
@@ -61,7 +61,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text(
               'Tune your pledge rhythm.',
               style: theme.textTheme.headlineSmall?.copyWith(
-                color: const Color(0xFF123A28),
+                color: const Color(0xFF06343A),
                 fontWeight: FontWeight.w900,
                 height: 1.1,
               ),

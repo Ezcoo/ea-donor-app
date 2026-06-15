@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -43,9 +45,9 @@ class HomeScreen extends StatelessWidget {
             end: Alignment.bottomRight,
             stops: const [0, 0.46, 1],
             colors: [
-              const Color(0xFFE6F7E9),
+              const Color(0xFFE1F7FA),
               colorScheme.primaryContainer.withValues(alpha: 0.45),
-              const Color(0xFFF9FCF6),
+              const Color(0xFFF7FCFD),
             ],
           ),
         ),
@@ -69,7 +71,7 @@ class HomeScreen extends StatelessWidget {
                         'Build a pledge that feels generous.',
                         style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
-                          color: const Color(0xFF123A28),
+                          color: const Color(0xFF06343A),
                           height: 1.05,
                         ),
                       ),
@@ -365,11 +367,15 @@ class _BoostButton extends StatefulWidget {
 }
 
 class _BoostButtonState extends State<_BoostButton>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _press = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 500),
   );
+  late final AnimationController _heartbeat = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1900),
+  )..repeat();
 
   // Quick squash (25% of the time), springy recovery (75%).
   late final Animation<double> _scale = TweenSequence<double>([
@@ -389,6 +395,38 @@ class _BoostButtonState extends State<_BoostButton>
     ),
   ]).animate(_press);
 
+  late final Animation<double> _idleScale = TweenSequence<double>([
+    TweenSequenceItem(tween: ConstantTween(1.0), weight: 48),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.0,
+        end: 1.024,
+      ).chain(CurveTween(curve: Curves.easeOutCubic)),
+      weight: 12,
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.024,
+        end: 0.996,
+      ).chain(CurveTween(curve: Curves.easeInOut)),
+      weight: 10,
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 0.996,
+        end: 1.014,
+      ).chain(CurveTween(curve: Curves.easeOutCubic)),
+      weight: 10,
+    ),
+    TweenSequenceItem(
+      tween: Tween(
+        begin: 1.014,
+        end: 1.0,
+      ).chain(CurveTween(curve: Curves.easeOut)),
+      weight: 20,
+    ),
+  ]).animate(_heartbeat);
+
   /// Bursts currently floating up; each removes itself when it finishes.
   final List<({int id, int amount})> _bursts = [];
   int _nextBurstId = 0;
@@ -396,6 +434,7 @@ class _BoostButtonState extends State<_BoostButton>
   @override
   void dispose() {
     _press.dispose();
+    _heartbeat.dispose();
     super.dispose();
   }
 
@@ -411,8 +450,9 @@ class _BoostButtonState extends State<_BoostButton>
   @override
   Widget build(BuildContext context) {
     final donation = context.watch<DonationState>();
-    final colorScheme = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    const heartTop = Color(0xFF00A6BD);
+    const heartBottom = Color(0xFF006B80);
 
     return SizedBox(
       width: 280,
@@ -428,25 +468,32 @@ class _BoostButtonState extends State<_BoostButton>
               shape: BoxShape.circle,
               gradient: RadialGradient(
                 colors: [
-                  colorScheme.primary.withValues(alpha: 0.18),
-                  colorScheme.primary.withValues(alpha: 0),
+                  heartBottom.withValues(alpha: 0.22),
+                  heartBottom.withValues(alpha: 0),
                 ],
               ),
             ),
           ),
-          ScaleTransition(
-            scale: _scale,
+          AnimatedBuilder(
+            animation: Listenable.merge([_press, _heartbeat]),
+            builder: (context, child) {
+              final scale = _press.isAnimating
+                  ? _scale.value
+                  : _idleScale.value;
+
+              return Transform.scale(scale: scale, child: child);
+            },
             child: DecoratedBox(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
+              decoration: ShapeDecoration(
+                shape: const _HeartBorder(),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [colorScheme.primary, colorScheme.tertiary],
+                  colors: [heartTop, heartBottom],
                 ),
-                boxShadow: [
+                shadows: [
                   BoxShadow(
-                    color: colorScheme.primary.withValues(alpha: 0.32),
+                    color: heartBottom.withValues(alpha: 0.36),
                     blurRadius: 42,
                     offset: const Offset(0, 18),
                   ),
@@ -454,52 +501,64 @@ class _BoostButtonState extends State<_BoostButton>
               ),
               child: Material(
                 color: Colors.transparent,
+                shape: const _HeartBorder(),
+                clipBehavior: Clip.antiAlias,
                 child: InkWell(
-                  customBorder: const CircleBorder(),
+                  key: const Key('boost-button'),
+                  customBorder: const _HeartBorder(),
                   onTap: _boost,
                   child: SizedBox(
-                    width: 230,
+                    width: 250,
                     height: 230,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 250),
-                          transitionBuilder: (child, animation) =>
-                              ScaleTransition(
-                                scale: animation,
-                                child: FadeTransition(
-                                  opacity: animation,
-                                  child: child,
+                    child: Transform.translate(
+                      offset: const Offset(0, -10),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 250),
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(
+                                  scale: animation,
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: child,
+                                  ),
                                 ),
+                            child: Text(
+                              '+${formatDollars(donation.nextBoost)}',
+                              // Keyed by amount so the switcher sees a "new"
+                              // child each rung and animates the swap.
+                              key: ValueKey(donation.nextBoost),
+                              style: TextStyle(
+                                fontSize: 43,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
                               ),
-                          child: Text(
-                            '+${formatDollars(donation.nextBoost)}',
-                            // Keyed by amount so the switcher sees a "new"
-                            // child each rung and animates the swap.
-                            key: ValueKey(donation.nextBoost),
-                            style: TextStyle(
-                              fontSize: 46,
-                              fontWeight: FontWeight.w900,
-                              color: colorScheme.onPrimary,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'boost your pledge',
-                          style: theme.textTheme.labelLarge?.copyWith(
-                            color: colorScheme.onPrimary.withValues(alpha: 0.8),
-                            fontWeight: FontWeight.w800,
+                          const SizedBox(height: 4),
+                          Text(
+                            'boost your pledge',
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              color: Colors.white.withValues(alpha: 0.84),
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
           ),
+          for (final burst in _bursts)
+            for (var i = 0; i < 5; i++)
+              _FloatingHeart(
+                key: ValueKey('heart-${burst.id}-$i'),
+                seed: burst.id * 5 + i,
+              ),
           for (final burst in _bursts)
             _FloatingBoost(
               key: ValueKey(burst.id),
@@ -509,6 +568,167 @@ class _BoostButtonState extends State<_BoostButton>
                   setState(() => _bursts.removeWhere((b) => b.id == burst.id)),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _HeartBorder extends ShapeBorder {
+  const _HeartBorder();
+
+  @override
+  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
+      getOuterPath(rect.deflate(8), textDirection: textDirection);
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
+    final width = rect.width;
+    final height = rect.height;
+    final left = rect.left;
+    final top = rect.top;
+
+    return Path()
+      ..moveTo(left + width * 0.50, top + height * 0.92)
+      ..cubicTo(
+        left + width * 0.18,
+        top + height * 0.72,
+        left,
+        top + height * 0.52,
+        left,
+        top + height * 0.30,
+      )
+      ..cubicTo(
+        left,
+        top + height * 0.10,
+        left + width * 0.16,
+        top,
+        left + width * 0.32,
+        top,
+      )
+      ..cubicTo(
+        left + width * 0.42,
+        top,
+        left + width * 0.49,
+        top + height * 0.07,
+        left + width * 0.50,
+        top + height * 0.17,
+      )
+      ..cubicTo(
+        left + width * 0.51,
+        top + height * 0.07,
+        left + width * 0.58,
+        top,
+        left + width * 0.68,
+        top,
+      )
+      ..cubicTo(
+        left + width * 0.84,
+        top,
+        left + width,
+        top + height * 0.10,
+        left + width,
+        top + height * 0.30,
+      )
+      ..cubicTo(
+        left + width,
+        top + height * 0.52,
+        left + width * 0.82,
+        top + height * 0.72,
+        left + width * 0.50,
+        top + height * 0.92,
+      )
+      ..close();
+  }
+
+  @override
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
+
+  @override
+  ShapeBorder scale(double t) => const _HeartBorder();
+}
+
+class _FloatingHeart extends StatelessWidget {
+  const _FloatingHeart({super.key, required this.seed});
+
+  final int seed;
+
+  @override
+  Widget build(BuildContext context) {
+    const colors = [
+      Color(0xFF006B80),
+      Color(0xFF008EA8),
+      Color(0xFF00A6BD),
+      Color(0xFF00B8CE),
+    ];
+    final direction = seed.isEven ? 1.0 : -1.0;
+    final drift = direction * (78.0 + (seed % 4) * 22.0);
+    final lift = 138.0 + (seed % 3) * 34.0;
+    final startX = direction * (42.0 + (seed % 3) * 18.0);
+    final startY = -14.0 - (seed % 2) * 16.0;
+    final size = 21.0 + (seed % 3) * 5.0;
+    final rotation = direction * (0.30 + (seed % 3) * 0.12);
+    final delay = (seed % 4) * 0.045;
+    final wobble = 4.0 + (seed % 4) * 1.5;
+    final frequency = 0.95 + (seed % 3) * 0.18;
+    final phase = seed * 0.9;
+    final flutter = 0.045 + (seed % 3) * 0.018;
+
+    return IgnorePointer(
+      child: TweenAnimationBuilder<double>(
+        tween: Tween(begin: 0, end: 1),
+        duration: const Duration(milliseconds: 1350),
+        curve: Curves.easeOutCubic,
+        builder: (context, rawT, _) {
+          final t = ((rawT - delay) / (1 - delay)).clamp(0.0, 1.0);
+          final opacity = (1 - t * 0.78).clamp(0.0, 1.0);
+          final scale = 0.68 + Curves.easeOutBack.transform(t) * 0.32;
+          final wave = math.sin((t * math.pi * 2 * frequency) + phase);
+          final fadingWobble = wave * wobble * (1 - t * 0.22);
+          final flutterAngle = math.sin((t * math.pi * 2.6) + phase) * flutter;
+
+          return Transform.translate(
+            offset: Offset(
+              startX + drift * t + fadingWobble,
+              startY - lift * t,
+            ),
+            child: Transform.rotate(
+              angle: rotation * t + flutterAngle,
+              child: Transform.scale(
+                scale: scale,
+                child: Opacity(
+                  opacity: opacity,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Icon(
+                        Icons.favorite,
+                        size: size + 5,
+                        color: Colors.white.withValues(alpha: 0.92),
+                      ),
+                      Icon(
+                        Icons.favorite,
+                        size: size,
+                        color: colors[seed % colors.length],
+                        shadows: [
+                          Shadow(
+                            color: const Color(
+                              0xFF06343A,
+                            ).withValues(alpha: 0.24),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

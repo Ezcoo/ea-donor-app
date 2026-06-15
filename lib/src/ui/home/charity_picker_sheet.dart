@@ -59,7 +59,7 @@ class _CharityPickerSheetState extends State<CharityPickerSheet> {
                     'Choose a charity',
                     style: theme.textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF123A28),
+                      color: const Color(0xFF06343A),
                     ),
                   ),
                   const SizedBox(height: 4),

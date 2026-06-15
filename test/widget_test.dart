@@ -33,25 +33,33 @@ Future<Widget> buildTestApp() async {
   );
 }
 
+Future<void> pumpPastBoostAnimations(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 1500));
+  await tester.pump();
+}
+
 void main() {
-  testWidgets('boost button climbs the ladder and accumulates the pledge',
-      (tester) async {
+  final boostButton = find.byKey(const Key('boost-button'));
+
+  testWidgets('boost button climbs the ladder and accumulates the pledge', (
+    tester,
+  ) async {
     await tester.pumpWidget(await buildTestApp());
 
     // First rung: the button offers $1.
     expect(find.text(r'+$1'), findsOneWidget);
 
-    // pumpAndSettle, not pump: each boost plays finite animations (button
-    // spring, floating "+$X", total count-up) that must finish before the
-    // resting state can be asserted.
-    await tester.tap(find.text(r'+$1'));
-    await tester.pumpAndSettle();
+    // The screen has a continuous idle heartbeat, so pump a fixed duration
+    // past the finite boost animations instead of waiting for full settlement.
+    await tester.tap(boostButton);
+    await pumpPastBoostAnimations(tester);
 
     // $1 was added, the button now offers the next rung ($3).
     expect(find.text(r'+$3'), findsOneWidget);
 
-    await tester.tap(find.text(r'+$3'));
-    await tester.pumpAndSettle();
+    await tester.tap(boostButton);
+    await pumpPastBoostAnimations(tester);
 
     // Total pledge = 1 + 3 = $4 (shown for both Boosts and the total,
     // since the default baseline is $0).
@@ -59,20 +67,21 @@ void main() {
     expect(find.text(r'+$5'), findsOneWidget);
   });
 
-  testWidgets('reset clears boosts and returns to the bottom rung',
-      (tester) async {
+  testWidgets('reset clears boosts and returns to the bottom rung', (
+    tester,
+  ) async {
     await tester.pumpWidget(await buildTestApp());
 
-    await tester.tap(find.text(r'+$1'));
-    await tester.pumpAndSettle();
+    await tester.tap(boostButton);
+    await pumpPastBoostAnimations(tester);
     await tester.tap(find.text('Reset boosts'));
-    await tester.pumpAndSettle();
+    await tester.pump();
 
     // Reset now asks for confirmation; nothing changes until the user
     // commits in the dialog.
     expect(find.text(r'+$3'), findsOneWidget); // still on the second rung
     await tester.tap(find.text('Reset'));
-    await tester.pumpAndSettle();
+    await pumpPastBoostAnimations(tester);
 
     expect(find.text(r'+$1'), findsOneWidget);
   });
@@ -91,15 +100,19 @@ void main() {
     for (var i = 0; i < extraTaps; i++) {
       donation.boost();
     }
-    expect(donation.boostedDollars,
-        atCeiling + extraTaps * DonationLadder.steps.last);
+    expect(
+      donation.boostedDollars,
+      atCeiling + extraTaps * DonationLadder.steps.last,
+    );
 
     // Each undo must remove exactly one $10,000 tap, not walk back down the
     // ladder — this is what the history tracking buys us.
     for (var remaining = extraTaps; remaining > 0; remaining--) {
       donation.removeLastBoost();
-      expect(donation.boostedDollars,
-          atCeiling + (remaining - 1) * DonationLadder.steps.last);
+      expect(
+        donation.boostedDollars,
+        atCeiling + (remaining - 1) * DonationLadder.steps.last,
+      );
     }
     expect(donation.boostedDollars, atCeiling);
   });
