@@ -16,6 +16,7 @@ class SfxPlayer {
   /// One pool per ladder rung lets rapid taps overlap (each pool keeps up
   /// to [_maxOverlap] native players warm) and gives each rung its pitch.
   final List<AudioPool> _boostPools = [];
+  AudioPool? _tapPool;
   AudioPool? _donatePool;
   AudioPool? _resetPool;
 
@@ -30,6 +31,8 @@ class SfxPlayer {
           maxPlayers: _maxOverlap,
         ));
       }
+      _tapPool =
+          await AudioPool.createFromAsset(path: 'sfx/tap.wav', maxPlayers: 3);
       _donatePool = await AudioPool.createFromAsset(
           path: 'sfx/donate.wav', maxPlayers: 1);
       _resetPool = await AudioPool.createFromAsset(
@@ -37,6 +40,7 @@ class SfxPlayer {
     } catch (error) {
       debugPrint('Sound effects unavailable: $error');
       _boostPools.clear();
+      _tapPool = null;
       _donatePool = null;
       _resetPool = null;
     }
@@ -51,4 +55,6 @@ class SfxPlayer {
   void donate() => _donatePool?.start();
 
   void reset() => _resetPool?.start();
+
+  void tap() => _tapPool?.start();
 }

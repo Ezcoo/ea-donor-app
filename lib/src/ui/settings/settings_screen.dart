@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../data/services/sfx_player.dart';
 import '../../data/services/notification_scheduler.dart';
 import '../../state/settings_state.dart';
 
@@ -100,6 +101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 groupValue: settings.nudgeInterval,
                 onChanged: (value) {
                   if (value != null) {
+                    context.read<SfxPlayer>().tap();
                     context.read<SettingsState>().setNudgeInterval(value);
                   }
                 },

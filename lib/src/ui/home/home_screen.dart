@@ -32,9 +32,12 @@ class HomeScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             tooltip: 'Settings',
-            onPressed: () => Navigator.of(
-              context,
-            ).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+            onPressed: () {
+              context.read<SfxPlayer>().tap();
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+            },
           ),
         ],
       ),
@@ -73,7 +76,7 @@ class HomeScreen extends StatelessWidget {
                           style: theme.textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.w900,
                             color: const Color(0xFF06343A),
-                            height: 1.05,
+                            height: 1.17,
                           ),
                         ),
                       ],
@@ -362,7 +365,10 @@ class _SummaryCard extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
+            onPressed: () {
+              sfx.tap();
+              Navigator.of(dialogContext).pop(false);
+            },
             child: const Text('Cancel'),
           ),
           FilledButton(
@@ -463,7 +469,10 @@ class _SummaryCard extends StatelessWidget {
                   TextButton.icon(
                     onPressed: donation.boostedDollars == 0
                         ? null
-                        : () => _confirmReset(context),
+                        : () {
+                            context.read<SfxPlayer>().tap();
+                            _confirmReset(context);
+                          },
                     icon: const Icon(Icons.replay, size: 16),
                     label: const Text('Reset boosts'),
                   ),
@@ -472,10 +481,8 @@ class _SummaryCard extends StatelessWidget {
                         ? null
                         : () {
                             final state = context.read<DonationState>();
+                            context.read<SfxPlayer>().tap();
                             state.removeLastBoost();
-                            // Blip pitched to the rung we stepped back to, so
-                            // undoing descends the scale that boosting climbed.
-                            context.read<SfxPlayer>().boost(state.rung);
                           },
                     icon: const Icon(Icons.undo, size: 16),
                     label: const Text('Remove last'),

@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../data/models/charity.dart';
 import '../../data/services/every_org_api.dart';
+import '../../data/services/sfx_player.dart';
 
 /// Bottom sheet: search every.org for a charity, tap one to open its
 /// donation page in the browser.
@@ -83,7 +84,10 @@ class _CharityPickerSheetState extends State<CharityPickerSheet> {
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.arrow_forward),
-                    onPressed: _search,
+                    onPressed: () {
+                      context.read<SfxPlayer>().tap();
+                      _search();
+                    },
                   ),
                 ),
                 onSubmitted: (_) => _search(),
@@ -254,7 +258,10 @@ class _CharityTile extends StatelessWidget {
         ),
         onTap: profileUrl == null
             ? null
-            : () => launchUrl(Uri.parse(profileUrl)),
+            : () {
+                context.read<SfxPlayer>().tap();
+                launchUrl(Uri.parse(profileUrl));
+              },
       ),
     );
   }
