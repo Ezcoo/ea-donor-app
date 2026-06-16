@@ -89,12 +89,18 @@ class HomeScreen extends StatelessWidget {
                   ),
                   _SweepingDonateButton(
                     onPressed: () {
+                      final baseline =
+                          context.read<SettingsState>().baselineDollars;
+                      final boosted =
+                          context.read<DonationState>().boostedDollars;
                       context.read<SfxPlayer>().donate();
                       showModalBottomSheet<void>(
                         context: context,
                         isScrollControlled: true,
                         showDragHandle: true,
-                        builder: (_) => const CharityPickerSheet(),
+                        builder: (_) => CharityPickerSheet(
+                          pledgeTotal: baseline + boosted,
+                        ),
                       );
                     },
                   ),

@@ -30,6 +30,7 @@ class PreferencesStore {
           .toList();
   Future<void> setBoostHistory(List<int> values) => _prefs.setStringList(
       _kBoostHistory, [for (final v in values) v.toString()]);
+  Future<void> clearBoostHistory() => _prefs.remove(_kBoostHistory);
 
   String? get nudgeIntervalName => _prefs.getString(_kNudgeInterval);
   Future<void> setNudgeIntervalName(String value) =>

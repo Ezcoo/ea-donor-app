@@ -17,6 +17,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   final store = await PreferencesStore.create();
+  await store.clearBoostHistory();
   final scheduler = NotificationScheduler();
   await scheduler.init();
   final sfx = SfxPlayer();

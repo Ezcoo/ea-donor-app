@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:donor_app/src/app.dart';
 import 'package:donor_app/src/core/donation_ladder.dart';
+import 'package:donor_app/src/data/models/charity.dart';
 import 'package:donor_app/src/data/services/every_org_api.dart';
 import 'package:donor_app/src/data/services/notification_scheduler.dart';
 import 'package:donor_app/src/data/services/preferences_store.dart';
@@ -15,9 +16,10 @@ import 'package:donor_app/src/state/settings_state.dart';
 /// Builds the app exactly as main() does, but on top of in-memory prefs.
 /// Being able to do this in four lines is the payoff of keeping all
 /// wiring in the composition root.
-Future<Widget> buildTestApp() async {
-  SharedPreferences.setMockInitialValues({});
+Future<Widget> buildTestApp({Map<String, Object> initialPrefs = const {}}) async {
+  SharedPreferences.setMockInitialValues(initialPrefs);
   final store = await PreferencesStore.create();
+  await store.clearBoostHistory();
   return MultiProvider(
     providers: [
       Provider(create: (_) => EveryOrgApi()),
@@ -86,6 +88,17 @@ void main() {
     expect(find.text(r'+$1'), findsOneWidget);
   });
 
+  testWidgets('fresh app launch starts boost button from the bottom rung', (
+    tester,
+  ) async {
+    await tester.pumpWidget(await buildTestApp(initialPrefs: {
+      'boostHistory': ['1', '3'],
+    }));
+
+    expect(find.text(r'+$1'), findsOneWidget);
+    expect(find.text(r'+$5'), findsNothing);
+  });
+
   test('removeLastBoost peels off repeated ceiling taps one for one', () async {
     SharedPreferences.setMockInitialValues({});
     final donation = DonationState(await PreferencesStore.create());
@@ -115,5 +128,18 @@ void main() {
       );
     }
     expect(donation.boostedDollars, atCeiling);
+  });
+
+  test('Every.org donate link includes the pledge amount', () {
+    final api = EveryOrgApi();
+    final uri = api.donateUri(
+      const Charity(
+        name: 'GiveDirectly',
+        profileUrl: 'https://www.every.org/givedirectly',
+      ),
+      amountDollars: 25,
+    );
+
+    expect(uri.toString(), 'https://www.every.org/givedirectly?amount=25#donate');
   });
 }

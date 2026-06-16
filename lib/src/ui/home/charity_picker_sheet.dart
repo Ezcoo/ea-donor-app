@@ -13,7 +13,9 @@ import '../../data/services/sfx_player.dart';
 /// in-flight request are *ephemeral* UI state that should die with the
 /// sheet, so they live in a State object instead of a ChangeNotifier.
 class CharityPickerSheet extends StatefulWidget {
-  const CharityPickerSheet({super.key});
+  const CharityPickerSheet({super.key, required this.pledgeTotal});
+
+  final int pledgeTotal;
 
   @override
   State<CharityPickerSheet> createState() => _CharityPickerSheetState();
@@ -117,8 +119,10 @@ class _CharityPickerSheetState extends State<CharityPickerSheet> {
                         return ListView.builder(
                           padding: const EdgeInsets.fromLTRB(12, 4, 12, 18),
                           itemCount: charities.length,
-                          itemBuilder: (context, index) =>
-                              _CharityTile(charity: charities[index]),
+                          itemBuilder: (context, index) => _CharityTile(
+                            charity: charities[index],
+                            pledgeTotal: widget.pledgeTotal,
+                          ),
                         );
                       },
                     ),
@@ -209,14 +213,16 @@ class _MessageState extends StatelessWidget {
 }
 
 class _CharityTile extends StatelessWidget {
-  const _CharityTile({required this.charity});
+  const _CharityTile({required this.charity, required this.pledgeTotal});
 
   final Charity charity;
+  final int pledgeTotal;
 
   @override
   Widget build(BuildContext context) {
     final logoUrl = charity.logoUrl;
     final profileUrl = charity.profileUrl;
+    final everyOrgApi = context.read<EveryOrgApi>();
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
@@ -257,7 +263,12 @@ class _CharityTile extends StatelessWidget {
             ? null
             : () {
                 context.read<SfxPlayer>().tap();
-                launchUrl(Uri.parse(profileUrl));
+                launchUrl(
+                  everyOrgApi.donateUri(
+                    charity,
+                    amountDollars: pledgeTotal,
+                  ),
+                );
               },
       ),
     );

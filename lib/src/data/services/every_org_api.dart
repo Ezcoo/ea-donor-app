@@ -21,6 +21,24 @@ class EveryOrgApi {
 
   bool get isConfigured => _apiKey.isNotEmpty;
 
+  /// Builds an Every.org donate link that opens the donation flow with the
+  /// pledged dollar amount pre-filled.
+  Uri donateUri(Charity charity, {required int amountDollars}) {
+    final profileUrl = charity.profileUrl;
+    if (profileUrl == null) {
+      throw const EveryOrgApiException('Charity has no Every.org profile URL.');
+    }
+
+    final uri = Uri.parse(profileUrl);
+    return uri.replace(
+      queryParameters: {
+        ...uri.queryParameters,
+        if (amountDollars > 0) 'amount': '$amountDollars',
+      },
+      fragment: 'donate',
+    );
+  }
+
   /// Searches nonprofits by free-text term.
   Future<List<Charity>> searchCharities(String term, {int take = 10}) async {
     if (!isConfigured) {
