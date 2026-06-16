@@ -16,6 +16,7 @@ class EveryOrgApi {
   EveryOrgApi({http.Client? client}) : _client = client ?? http.Client();
 
   static const _apiKey = String.fromEnvironment('EVERY_ORG_API_KEY');
+  static const _donateHost = 'staging.every.org';
 
   final http.Client _client;
 
@@ -31,6 +32,7 @@ class EveryOrgApi {
 
     final uri = Uri.parse(profileUrl);
     return uri.replace(
+      host: uri.host == 'www.every.org' ? _donateHost : uri.host,
       queryParameters: {
         ...uri.queryParameters,
         if (amountDollars > 0) 'amount': '$amountDollars',

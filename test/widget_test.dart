@@ -140,6 +140,9 @@ void main() {
       amountDollars: 25,
     );
 
-    expect(uri.toString(), 'https://www.every.org/givedirectly?amount=25#donate');
+    expect(
+      uri.toString(),
+      'https://staging.every.org/givedirectly?amount=25#donate',
+    );
   });
 }
